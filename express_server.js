@@ -54,6 +54,12 @@ app.post('/urls', (request, response) => {
   response.redirect(`/urls/${short}`);
 });
 
+app.post('/urls/:shortURL/delete', (request, response) => {
+  const url = request.params.shortURL
+  delete urlDatabase[url];
+  response.redirect('/urls');
+})
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
