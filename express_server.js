@@ -1,10 +1,11 @@
 const { request, response } = require('express');
 const express = require('express');
 const app = express();
+const bodyParser = require("body-parser");
 const PORT = 8080;
 
 function generateRandomString() {
-
+  return Math.random().toString(36).slice(2, 8);
 };
 
 app.set('view engine', 'ejs');
@@ -14,7 +15,6 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/', (request, response) => {
@@ -35,17 +35,23 @@ app.get('/urls/new', (request, response) => {
 });
 
 app.get('/urls/:shortURL', (request, response) => {
-  const templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase};
+  const templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL]};
   response.render('urls_show', templateVars);
+});
+
+app.get("/u/:shortURL", (request, response) => {
+  const longURL = urlDatabase[request.params.shortURL];
+  response.redirect(longURL);
 });
 
 app.get('/hello', (request, response) => {
   response.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body.longURL);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+app.post('/urls', (request, response) => {
+  let short = generateRandomString();
+  urlDatabase[short] = request.body.longURL;
+  response.redirect(`/urls/${short}`);
 });
 
 app.listen(PORT, () => {
