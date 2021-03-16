@@ -3,6 +3,10 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
+function generateRandomString() {
+
+};
+
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
@@ -37,6 +41,11 @@ app.get('/urls/:shortURL', (request, response) => {
 
 app.get('/hello', (request, response) => {
   response.send('<html><body>Hello <b>World</b></body></html>\n');
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body.longURL);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.listen(PORT, () => {
