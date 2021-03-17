@@ -1,6 +1,7 @@
 const { request, response } = require('express');
 const express = require('express');
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080;
 
@@ -15,7 +16,9 @@ const urlDatabase = {
 
 app.set('view engine', 'ejs');
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(cookieParser())
 
 app.get('/', (request, response) => {
   response.send('Hello!');
@@ -26,18 +29,18 @@ app.get('/urls.json', (request, response) => {
 });
 
 app.get('/urls', (request, response) => {
-  const templateVars = { urls: urlDatabase};
+  const templateVars = { urls: urlDatabase, username: request.cookies["username"]  };
   response.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (request, response) => {
-  response.render('urls_new');
+  response.render('urls_new', { username: request.cookies["username"] });
 });
 
 app.get('/urls/:shortURL', (request, response) => {
   const shortURL = request.params.shortURL;
   const longURL = urlDatabase[request.params.shortURL];
-  const templateVars = { shortURL, longURL };
+  const templateVars = { shortURL, longURL, username: request.cookies["username"] };
   response.render('urls_show', templateVars);
 });
 
@@ -72,10 +75,16 @@ app.post('/urls/:id', (request, response) => {
   response.redirect(`/urls/${url}`);
 });
 
+app.post('/login', (request, response) => {
+  response.cookie('username', request.body.username);
+  response.redirect('/urls');
+});
+
+app.post('/logout', (request, response) => {
+  response.clearCookie('username', request.body.username);
+  response.redirect('/urls');
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
-
-// This activity will implement the Update operation using a POST request, which will allow us to edit existing shortened URLs in our application.
-
-// This portion of the assignment requires changes on the client and the server. Once the user submits an Update request, it should modify the corresponding longURL, and then redirect the client back to "/urls".
