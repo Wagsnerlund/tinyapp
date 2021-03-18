@@ -11,19 +11,23 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-    <% if (username) { %>
-      <form class="form-inline" action="/logout" method="POST">
-        <div style="margin-right: 1em; height: 62px;">
-          <span class="align-middle">Logged In As: <%= username %></span>
-        </div>
-        <button type="submit" class="btn btn-outline-light">Logout</button>
+    <% if (user) { %>
+      <form class="form-inline" action="/logout" method="POST">Logged In As: <%= user.email %>
+          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav mb-3 mb-md-0 ml-md-3">
+              <button type="submit" class="btn btn-outline-light">Logout</button>
+            </div>
+          </div>
       </form>
       <% } %>
-        <% if (!username) { %>
+        <% if (!user) { %>
           <form class="form-inline" action="/login" method="POST">
-            <input type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em" />
-            <button type="submit" class="btn btn-outline-light">Login</button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+              <div class="navbar-nav" style="margin-right: 1em;">
+                <a class="nav-item nav-link" href="/login">Login</a>
+                <a class="nav-item nav-link" href="/register">Register</a>
+              </div>
+            </div>
           </form>
           <% } %>
-  </nav>
 </header>
