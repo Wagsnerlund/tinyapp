@@ -6,8 +6,8 @@ const app = express();
 const PORT = 8080;
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 const users = {
@@ -46,8 +46,15 @@ const emailExists = function (pEmail) {
   return false;
 };
 
-console.log(emailExists());
-
+const urlsForUser = function (id) {
+  let filtered = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      filtered[url] = urlDatabase[url];
+    }
+  }
+  return filtered;
+};
 
 app.set('view engine', 'ejs');
 
@@ -63,17 +70,26 @@ app.use(cookieParser())
 // });
 
 app.get('/urls', (request, response) => {
-  const templateVars = { urls: urlDatabase, user: users[request.cookies["user_id"]] };
+  const userId = request.cookies["user_id"];
+  const filtered = urlsForUser(userId);
+  const templateVars = { urls: filtered, user: users[userId] };
   response.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (request, response) => {
-  response.render('urls_new', { user: users[request.cookies["user_id"]] });
+  const userId = request.cookies["user_id"];
+  if (!users[userId]) {
+    response.redirect('/register');
+  } else if (!userId) {
+    response.redirect('/login');
+  } else {
+    response.render('urls_new', { user: users[userId] });
+  }
 });
 
 app.get('/urls/:shortURL', (request, response) => {
   const shortURL = request.params.shortURL;
-  const longURL = urlDatabase[request.params.shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
   const templateVars = { shortURL, longURL, user: users[request.cookies["user_id"]] };
   response.render('urls_show', templateVars);
 });
@@ -99,19 +115,31 @@ app.get("/u/:shortURL", (request, response) => {
 
 app.post('/urls', (request, response) => {
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = request.body.longURL;
+  const userId = request.cookies["user_id"]
+  urlDatabase[shortURL] = { longURL: request.body.longURL, userID: userId };
   response.redirect(`/urls/${shortURL}`);
 });
 
 app.post('/urls/:shortURL/delete', (request, response) => {
   const url = request.params.shortURL
-  delete urlDatabase[url];
-  response.redirect('/urls');
+  const userId = request.cookies["user_id"]
+  if (userId && urlDatabase[url].userID === userId) {
+    delete urlDatabase[url];
+    response.redirect('/urls');
+  } else {
+    response.redirect('/urls')
+  }
 });
 
 app.post('/urls/:shortURL/edit', (request, response) => {
-  urlDatabase[request.params.shortURL] = request.body.longURL;
-  response.redirect(`/urls`);
+  const url = request.params.shortURL
+  const userId = request.cookies["user_id"]
+  if (userId && urlDatabase[url].userID === userId) {
+    urlDatabase[request.params.shortURL].longURL = request.body.longURL;
+    response.redirect(`/urls`);
+  } else {
+    console.log("Unauthorized edit!");
+  }
 });
 
 app.post('/urls/:id', (request, response) => {
@@ -154,7 +182,7 @@ app.post('/register', (request, response) => {
   } else {
     users[userID] = { id: userID, email: email, password: password }
     response.cookie('user_id', userID);
-    response.redirect('/urls');
+    response.redirect('/login');
   }
 });
 
