@@ -2,6 +2,7 @@ const { request, response } = require('express');
 const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
@@ -61,14 +62,6 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser())
 
-// app.get('/', (request, response) => {
-//   response.send('Hello!');
-// });
-
-// app.get('/urls.json', (request, response) => {
-//   response.json(urlDatabase);
-// });
-
 app.get('/urls', (request, response) => {
   const userId = request.cookies["user_id"];
   const filtered = urlsForUser(userId);
@@ -109,10 +102,6 @@ app.get("/u/:shortURL", (request, response) => {
   response.redirect(longURL);
 });
 
-// app.get('/hello', (request, response) => {
-//   response.send('<html><body>Hello <b>World</b></body></html>\n');
-// });
-
 app.post('/urls', (request, response) => {
   let shortURL = generateRandomString();
   const userId = request.cookies["user_id"]
@@ -138,7 +127,7 @@ app.post('/urls/:shortURL/edit', (request, response) => {
     urlDatabase[request.params.shortURL].longURL = request.body.longURL;
     response.redirect(`/urls`);
   } else {
-    console.log("Unauthorized edit!");
+    response.redirect('/urls')
   }
 });
 
@@ -151,13 +140,13 @@ app.post('/login', (request, response) => {
   const email = request.body.email;
   const password = request.body.password;
   if (!email || !password) {
-    response.send('400: You cannot leave the email/password fields empty.');
+    response.sendStatus(400);
   } else if (emailExists(email) === false) {
-    response.send('403: User does not exist!')
+    response.sendStatus(403);
   } else {
     const user = getUser(email);
-    if (user.password !== password) {
-      response.send('403: invalid credentials.')
+    if (bcrypt.compareSync(password, user.password) === false) {
+      response.sendStatus(403);
     } else {
       response.cookie('user_id', user.id);
       response.redirect('/urls');
@@ -174,13 +163,14 @@ app.post('/register', (request, response) => {
   let userID = generateRandomString();
   const email = request.body.email;
   const password = request.body.password;
+
   if (!email || !password) {
-    response.send('400: You cannot leave the email/password fields empty.');
-    // } else if (users, 'email', email) {
+    response.sendStatus(400);
   } else if (emailExists(email) === true) {
-    response.send('400: Email address already exists!')
+    response.sendStatus(400)
   } else {
-    users[userID] = { id: userID, email: email, password: password }
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    users[userID] = { id: userID, email: email, password: hashedPassword }
     response.cookie('user_id', userID);
     response.redirect('/login');
   }
