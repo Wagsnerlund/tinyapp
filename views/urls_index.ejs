@@ -13,8 +13,27 @@
 
 <body>
   <%- include('partials/_header') %>
+
+    </div>
     <% if (!user) { %>
-      <h2>You need to Login or Register to continue!</h2>
+      <div class="form-group; card text-center" style="margin-top: 30px; margin-bottom: 30px">
+        <dl>
+          <div class="text-secondary" style="margin-top: 15px; margin-bottom: 15px">
+            <h2>Welcome to</h2>
+          </div>
+          <div class="text-primary" style="margin-top: 15px; margin-bottom: 30px">
+            <h1>TinyApp!</h1>
+          </div>
+          <div class="text-secondary">
+            <h4>To continue into TinyApp,
+              <h4>please <a href="/login" class="text-primary">Login</a> or <a href="/register"
+                  class="text-primary">Register</a>
+              </h4>
+          </div>
+        </dl>
+      </div>
+      </h4>
+      </div>
       <% } %>
         <% if (user) { %>
           <main style='margin: 1em;'>
